@@ -17,12 +17,26 @@ const createWindow = () => {
     },
   });
 
-  // and load the index.html of the app.
-  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-    mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+  // Load the Angular app from dist directory
+  // Check if we're in development or production
+  const isDev = !app.isPackaged;
+  let distPath: string;
+  
+  if (isDev) {
+    // Development: use project root directory + dist
+    // app.getAppPath() returns the project root directory
+    distPath = path.join(app.getAppPath(), 'dist', 'index.html');
   } else {
-    mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
+    // Production: from extraResource
+    distPath = path.join(process.resourcesPath, 'dist', 'index.html');
   }
+  
+  console.log('Loading Angular app from:', distPath);
+  console.log('File exists:', require('fs').existsSync(distPath));
+  
+  mainWindow.loadFile(distPath).catch(err => {
+    console.error('Failed to load Angular app:', err);
+  });
 
   // Open the DevTools.
   mainWindow.webContents.openDevTools();
